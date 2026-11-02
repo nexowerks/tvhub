@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Glass Launcher</title>
+    <link rel="stylesheet" href="css/glass.css">
+  </head>
+  <body>
+    <div id="stage">
+      <div class="wallpaper">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+        <div class="blob b4"></div>
+      </div>
+
+      <!-- Menu bar -->
+      <header class="menubar glass">
+        <div class="menubar-left">
+          <span class="menubar-mark" aria-hidden="true"></span>
+          <span class="menubar-title" id="active-title">Home</span>
+        </div>
+        <div class="menubar-right">
+          <button class="menu-item focusable" data-zone="menubar" data-action="control-center" aria-label="Control Center">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="5" rx="2.5"/><circle cx="16" cy="7.5" r="1.6" class="knob"/><rect x="3" y="14" width="18" height="5" rx="2.5"/><circle cx="8" cy="16.5" r="1.6" class="knob"/></svg>
+          </button>
+          <span class="menu-clock" id="menu-clock">--</span>
+        </div>
+      </header>
+
+      <!-- Widgets -->
+      <main class="desktop">
+        <section class="widget clock-widget glass">
+          <div class="clock-time" id="big-time">--:--</div>
+          <div class="clock-date" id="big-date"></div>
+        </section>
+
+        <section class="widget inputs-widget glass">
+          <h2>Inputs</h2>
+          <div class="input-grid" id="input-grid"></div>
+        </section>
+      </main>
+
+      <!-- Dock -->
+      <footer class="dock-wrap">
+        <nav class="dock glass" id="dock"></nav>
+        <div class="dock-label" id="dock-label"></div>
+      </footer>
+
+      <!-- Control Center -->
+      <aside class="control-center glass" id="control-center" aria-hidden="true">
+        <h2>Control Center</h2>
+        <div class="cc-grid" id="cc-grid"></div>
+      </aside>
+
+      <div class="toast glass" id="toast"></div>
+    </div>
+
+    <script src="js/launcher.js"></script>
+  </body>
+</html>
