@@ -3,9 +3,10 @@
 (function () {
   'use strict';
 
-  var LAT = null;   // e.g. 40.7128
-  var LON = null;   // e.g. -74.0060
+  var LAT = 27.4467;   // Fort Pierce, FL  (set to null to auto-detect by IP)
+  var LON = -80.3256;
   var UNIT = 'fahrenheit';   // 'fahrenheit' or 'celsius'
+  var PLACE = 'Fort Pierce';
 
   // WMO weather codes -> label + simple SVG glyph
   var SUN = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="9" fill="#ffd60a"/><g stroke="#ffd60a" stroke-width="2.4" stroke-linecap="round"><path d="M24 6v6M24 36v6M6 24h6M36 24h6M11 11l4 4M33 33l4 4M37 11l-4 4M15 33l-4 4"/></g></svg>';
@@ -73,7 +74,7 @@
   }
 
   function start() {
-    if (LAT != null && LON != null) return load(LAT, LON, 'Weather');
+    if (LAT != null && LON != null) return load(LAT, LON, PLACE || 'Weather');
     // Auto-detect by IP (works on the TV's network; cached for the session)
     fetch('https://ipapi.co/json/').then(function (r) { return r.json(); }).then(function (g) {
       load(g.latitude, g.longitude, g.city || g.region || 'Weather');

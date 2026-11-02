@@ -1,0 +1,344 @@
+/* Glass Launcher — macOS-inspired "liquid glass" home screen for LG webOS.
+   Designed on a fixed 1920x1080 stage; launcher.js scales it to the panel. */
+
+:root {
+  --font: "SF Pro Display", "Inter", "LG Smart UI", "Helvetica Neue", Arial, sans-serif;
+  --text: rgba(255, 255, 255, 0.96);
+  --text-dim: rgba(255, 255, 255, 0.62);
+  --glass-fill: rgba(255, 255, 255, 0.14);
+  --glass-fill-strong: rgba(255, 255, 255, 0.22);
+  --glass-edge: rgba(255, 255, 255, 0.38);
+  --glass-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --accent: #0a84ff;
+  --ease: cubic-bezier(0.2, 0.9, 0.25, 1.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b1020;
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; outline: none; }
+
+#stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+
+/* ---------- Wallpaper ---------- */
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1b1446 0%, #2a1a5e 35%, #0f3b6e 70%, #0a2342 100%);
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.85;
+  will-change: transform;
+  animation: drift 40s ease-in-out infinite alternate;
+}
+.b1 { width: 900px; height: 900px; left: -200px; top: -250px; background: #ff6b9d; }
+.b2 { width: 800px; height: 800px; right: -150px; top: -100px; background: #7b5cff; animation-delay: -10s; }
+.b3 { width: 1000px; height: 700px; left: 400px; bottom: -350px; background: #00c2ff; animation-delay: -20s; }
+.b4 { width: 600px; height: 600px; right: 200px; bottom: -150px; background: #ffb340; opacity: 0.55; animation-delay: -30s; }
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(120px, 60px, 0) scale(1.12); }
+}
+
+/* Turned on by launcher.js on slower TVs */
+.reduce-motion .blob { animation: none; }
+
+/* ---------- Liquid glass material ---------- */
+
+.glass {
+  position: relative;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 45%, rgba(255, 255, 255, 0.12) 100%),
+    var(--glass-fill);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* Specular highlight across the top edge */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 60% at 30% 0%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 55%);
+  pointer-events: none;
+}
+
+/* Older webOS (Chromium < 76) has no backdrop-filter: use a frosted solid instead */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: rgba(40, 44, 72, 0.82); }
+}
+
+/* ---------- Menu bar ---------- */
+
+.menubar {
+  position: absolute;
+  top: 24px;
+  left: 48px;
+  right: 48px;
+  height: 64px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 28px;
+  z-index: 10;
+}
+
+.menubar-left, .menubar-right { display: flex; align-items: center; gap: 18px; }
+
+.menubar-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, #ff6b9d, #ffb340, #34c759, #00c2ff, #7b5cff, #ff6b9d);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.menubar-title { font-size: 26px; font-weight: 600; letter-spacing: 0.2px; }
+.menu-clock { font-size: 24px; font-weight: 500; color: var(--text); padding-right: 12px; }
+
+.menu-item {
+  width: 52px;
+  height: 44px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.25s var(--ease);
+}
+.menu-item svg { width: 28px; height: 28px; fill: none; stroke: var(--text); stroke-width: 1.8; }
+.menu-item svg .knob { fill: var(--text); stroke: none; }
+
+/* ---------- Desktop widgets ---------- */
+
+.desktop {
+  position: absolute;
+  top: 150px;
+  left: 96px;
+  right: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.widget-row { display: flex; gap: 40px; align-items: stretch; }
+
+.widget { border-radius: 40px; padding: 40px 48px; }
+
+.clock-widget { width: 620px; }
+.clock-time { font-size: 150px; font-weight: 200; letter-spacing: -4px; line-height: 1; }
+.clock-date { margin-top: 14px; font-size: 32px; font-weight: 500; color: var(--text-dim); }
+
+/* ---------- Weather widget ---------- */
+
+.weather-widget { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.weather-loading { font-size: 28px; color: var(--text-dim); }
+
+.weather-main { display: flex; align-items: center; gap: 36px; }
+.weather-icon { width: 128px; height: 128px; flex: none; }
+.weather-temp { font-size: 110px; font-weight: 200; letter-spacing: -3px; line-height: 1; }
+.weather-meta { display: flex; flex-direction: column; gap: 6px; }
+.weather-place { font-size: 30px; font-weight: 600; }
+.weather-desc { font-size: 26px; color: var(--text-dim); }
+.weather-hl { font-size: 26px; color: var(--text-dim); }
+
+.weather-strip { display: flex; gap: 28px; margin-top: 28px; }
+.weather-hour { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+.weather-hour .h { font-size: 22px; color: var(--text-dim); }
+.weather-hour svg { width: 40px; height: 40px; }
+.weather-hour .t { font-size: 26px; font-weight: 500; }
+
+.inputs-widget { width: 100%; }
+.widget h2 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+}
+
+.input-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+.tile {
+  height: 150px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 500;
+  transition: transform 0.3s var(--ease), background 0.2s, box-shadow 0.2s;
+}
+.tile svg { width: 48px; height: 48px; fill: none; stroke: var(--text); stroke-width: 1.6; }
+
+/* ---------- Dock ---------- */
+
+.dock-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.dock {
+  display: flex;
+  align-items: flex-end;
+  gap: 22px;
+  padding: 18px 24px;
+  border-radius: 44px;
+}
+
+.dock-sep { width: 2px; height: 96px; margin: 0 4px; align-self: center; background: rgba(255, 255, 255, 0.25); border-radius: 1px; }
+
+.app {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  font-weight: 700;
+  color: #fff;
+  transform-origin: 50% 100%;
+  transition: transform 0.35s var(--ease), margin 0.35s var(--ease);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -2px 6px rgba(0, 0, 0, 0.15);
+}
+.app::after {
+  /* glossy icon sheen */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 50%);
+  pointer-events: none;
+}
+.app img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.app svg { width: 60px; height: 60px; fill: none; stroke: #fff; stroke-width: 1.8; }
+/* Brand logos carry their own fills/strokes per path — don't force the icon defaults */
+.app.has-logo svg { width: 72px; height: 72px; fill: none; stroke: none; stroke-width: 0; }
+
+/* Running indicator dot under the icon */
+.app.running::before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* Dock magnification: focused icon grows, neighbours grow a little */
+.app.focused   { transform: scale(1.45) translateY(-10px); margin: 0 26px; }
+.app.near      { transform: scale(1.15); margin: 0 8px; }
+
+.dock-label {
+  position: absolute;
+  bottom: 205px;
+  left: 50%;
+  white-space: nowrap;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 24px;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 48px;
+  background: rgba(30, 30, 40, 0.55);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.2s, transform 0.25s var(--ease), left 0.3s var(--ease);
+}
+.dock-label.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Focus ring (remote / keyboard) ---------- */
+
+.focusable.focused:not(.app) {
+  background: var(--glass-fill-strong);
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85), 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Control Center ---------- */
+
+.control-center {
+  position: absolute;
+  top: 104px;
+  right: 48px;
+  width: 560px;
+  border-radius: 36px;
+  padding: 32px;
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(-16px) scale(0.96);
+  transform-origin: 90% 0;
+  pointer-events: none;
+  transition: opacity 0.22s, transform 0.3s var(--ease);
+}
+.control-center.open { opacity: 1; transform: none; pointer-events: auto; }
+.control-center h2 { font-size: 22px; font-weight: 600; color: var(--text-dim); margin-bottom: 20px; letter-spacing: 0.5px; }
+
+.cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cc-grid .tile { height: 120px; font-size: 22px; }
+.cc-grid .tile svg { width: 40px; height: 40px; }
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: absolute;
+  top: 110px;
+  left: 50%;
+  min-width: 360px;
+  padding: 18px 32px;
+  border-radius: 28px;
+  font-size: 24px;
+  text-align: center;
+  transform: translate(-50%, -20px);
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.3s var(--ease);
+  z-index: 30;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }

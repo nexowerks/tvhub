@@ -1,0 +1,24 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'house.hueco.glass'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "house.hueco.glass"
+        minSdk 22            // Android TV 5.1+ covers virtually all Philips Android sets
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

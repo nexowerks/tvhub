@@ -8,19 +8,19 @@
   // App IDs are LG's launch IDs. Ones that aren't installed are hidden automatically
   // when the TV lets us list installed apps.
   var FAVORITES = [
-    { id: 'netflix', name: 'Netflix', letter: 'N', bg: 'linear-gradient(160deg,#e50914,#8a050c)' },
-    { id: 'youtube.leanback.v4', name: 'YouTube', letter: '▶', bg: 'linear-gradient(160deg,#ff3b30,#c4001d)' },
-    { id: 'amazon', name: 'Prime Video', letter: 'P', bg: 'linear-gradient(160deg,#1fa8ff,#0a5fae)' },
-    { id: 'com.disney.disneyplus-prod', name: 'Disney+', letter: 'D+', bg: 'linear-gradient(160deg,#1b3a8f,#0b1748)' },
-    { id: 'com.apple.appletv', name: 'Apple TV', letter: 'tv', bg: 'linear-gradient(160deg,#3a3a3c,#111)' },
-    { id: 'spotify-beehive', name: 'Spotify', letter: 'S', bg: 'linear-gradient(160deg,#1ed760,#0f8a3c)' },
-    { id: 'cdp-30', name: 'Plex', letter: 'Px', bg: 'linear-gradient(160deg,#ffc230,#d18a00)' }
+    { id: 'netflix', android: 'com.netflix.ninja', name: 'Netflix', letter: 'N', bg: 'linear-gradient(160deg,#e50914,#8a050c)' },
+    { id: 'youtube.leanback.v4', android: 'com.google.android.youtube.tv', name: 'YouTube', letter: '▶', bg: 'linear-gradient(160deg,#ff3b30,#c4001d)' },
+    { id: 'amazon', android: 'com.amazon.amazonvideo.livingroom', name: 'Prime Video', letter: 'P', bg: 'linear-gradient(160deg,#1fa8ff,#0a5fae)' },
+    { id: 'com.disney.disneyplus-prod', android: 'com.disney.disneyplus', name: 'Disney+', letter: 'D+', bg: 'linear-gradient(160deg,#1b3a8f,#0b1748)' },
+    { id: 'com.apple.appletv', android: 'com.apple.atve.androidtv.appletv', name: 'Apple TV', letter: 'tv', bg: 'linear-gradient(160deg,#3a3a3c,#111)' },
+    { id: 'spotify-beehive', android: 'com.spotify.tv.android', name: 'Spotify', letter: 'S', bg: 'linear-gradient(160deg,#1ed760,#0f8a3c)' },
+    { id: 'cdp-30', android: 'com.plexapp.android', name: 'Plex', letter: 'Px', bg: 'linear-gradient(160deg,#ffc230,#d18a00)' }
   ];
 
   var SYSTEM_APPS = [
-    { id: 'com.webos.app.livetv', name: 'Live TV', icon: 'tv', bg: 'linear-gradient(160deg,#5e5ce6,#3634a3)' },
-    { id: 'com.webos.app.browser', name: 'Browser', icon: 'globe', bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)' },
-    { id: 'com.palm.app.settings', name: 'Settings', icon: 'gear', bg: 'linear-gradient(160deg,#aeaeb2,#636366)' }
+    { id: 'com.webos.app.livetv', android: 'com.google.android.tv', name: 'Live TV', icon: 'tv', bg: 'linear-gradient(160deg,#5e5ce6,#3634a3)' },
+    { id: 'com.webos.app.browser', android: 'com.phlox.tvwebbrowser', name: 'Browser', icon: 'globe', bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)' },
+    { id: 'com.palm.app.settings', android: '__settings__', name: 'Settings', icon: 'gear', bg: 'linear-gradient(160deg,#aeaeb2,#636366)' }
   ];
 
   var INPUTS = [
@@ -61,7 +61,19 @@
     bridge.call(uri, JSON.stringify(params || {}));
   }
 
+  // Platform detection: Android TV exposes the AndroidLauncher bridge; LG exposes PalmServiceBridge.
+  var ANDROID = typeof window.AndroidLauncher !== 'undefined';
+
   function launch(app) {
+    if (ANDROID) {
+      if (app.android === '__settings__') { window.AndroidLauncher.openSettings(); return; }
+      if (app.android) {
+        if (!window.AndroidLauncher.launch(app.android)) toast(app.name + ' isn’t installed');
+      } else {
+        toast(app.name + ' isn’t available on this TV');
+      }
+      return;
+    }
     luna('luna://com.webos.applicationManager/launch', { id: app.id }, function (res) {
       if (res.preview) toast('Would open ' + app.name);
       else if (!res.returnValue) toast(app.name + ' isn’t available');
@@ -144,8 +156,18 @@
     }));
   }
 
+  // On Android TV, hide dock apps that aren't installed (keeps the built-in logos).
+  function loadAndroidApps() {
+    var installed = FAVORITES.filter(function (app) {
+      return !app.android || window.AndroidLauncher.isInstalled(app.android);
+    });
+    if (installed.length) renderDock(installed);
+    setFocus(document.querySelector('#dock .app'));
+  }
+
   // Use the TV's installed-app list (when permitted) to hide missing apps and show real icons.
   function loadInstalledApps() {
+    if (ANDROID) return loadAndroidApps();
     luna('luna://com.webos.applicationManager/listLaunchPoints', {}, function (res) {
       if (!res.returnValue || !res.launchPoints) return;
       var byId = {};
@@ -287,14 +309,29 @@
     else if (cc.classList.contains('open') && !cc.contains(e.target)) toggleControlCenter(false);
   });
 
+  // Android's hardware Back button calls this (see MainActivity). Return true if we handled it.
+  window.__glassBack = function () {
+    if (cc.classList.contains('open')) { toggleControlCenter(false); return true; }
+    var dockApp = document.querySelector('#dock .app.focused');
+    if (!dockApp) { setFocus(document.querySelector('#dock .app')); return true; }
+    return false; // already on the dock — let the system decide (stays on Home)
+  };
+
   // ---------- Start ----------
 
   try { if (localStorage.getItem('reduceMotion') === '1') document.body.classList.add('reduce-motion'); } catch (e) {}
 
+  // A browser-based app can't switch TV inputs on Android TV, so hide that widget there.
+  if (ANDROID) {
+    document.body.classList.add('android');
+    var iw = document.querySelector('.inputs-widget');
+    if (iw) iw.style.display = 'none';
+  }
+
   fitStage();
   window.addEventListener('resize', fitStage);
   renderDock(FAVORITES);
-  renderInputs();
+  if (!ANDROID) renderInputs();
   renderControlCenter();
   tick();
   setInterval(tick, 10000);

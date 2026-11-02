@@ -1,18 +1,51 @@
-# Glass Launcher (LG webOS)
+# Glass Launcher
 
-A macOS-inspired "liquid glass" home screen for LG webOS TVs: frosted-glass menu bar,
-a live weather widget, clock and input widgets, a magnifying dock with real app logos,
-and a Control Center panel. It works with the arrow keys on the remote and with the
-Magic Remote pointer.
+A macOS-inspired "liquid glass" home screen for smart TVs: frosted-glass menu bar,
+a live weather widget, a clock, a magnifying dock with real app logos, and a Control
+Center panel. Driven by the TV remote.
 
 ![Preview](preview-dock.png)
+
+**Two builds share this one web UI:**
+- **Android TV / Google TV** (Philips, Sony, TCL, etc.) — see [`../android/`](../android/)
+  and **[Android TV install](#install-on-android-tv--google-tv)** below. This is the build
+  for Philips 4K TVs.
+- **LG webOS** — the rest of this page.
+
+---
+
+## Install on Android TV / Google TV
+
+You don't build anything yourself. GitHub builds the APK for you:
+
+1. On GitHub, open the repo's **Releases** → **Glass Launcher (Android TV) — latest** and
+   download `glass-launcher-androidtv.apk`. (Or **Actions** → latest "Build Android TV APK"
+   run → **Artifacts**.)
+2. On the TV: **Settings → System → About → Build** and click it ~7 times to unlock
+   **Developer options**, then turn on **USB/Network debugging**. Note the TV's IP
+   (Settings → Network → shows it; e.g. `192.168.1.203`).
+3. From a computer on the same Wi-Fi (needs the `adb` tool, part of Android platform-tools):
+   ```sh
+   adb connect 192.168.1.203:5555
+   adb install -r glass-launcher-androidtv.apk
+   ```
+   The first `adb connect` pops an "Allow debugging?" box on the TV — approve it.
+4. **Glass** now appears in your Apps row. Open it. To make it your Home screen, press the
+   remote's **Home** button once and pick **Glass** as the default launcher (you can switch
+   back anytime in Settings → Apps → Default apps → Home app).
+
+On Android TV the dock launches installed apps (Netflix, YouTube, Prime, etc.) and hides any
+you don't have. The HDMI-input tiles are hidden there because an app can't switch inputs on
+Android TV — use the remote's Input button for that.
+
+---
+
+## Install on LG webOS
 
 ## Preview in a browser
 
 Open `index.html` in Chrome. Use the arrow keys to move, Enter to select, and Esc for Back.
 In the browser, launching an app shows a "Would open …" message instead of opening it.
-
-## Install on the TV
 
 A ready-built package is in [`../dist/`](../dist/) — `house.hueco.glasslauncher_1.0.0_all.ipk`.
 You only need `ares-install` to put it on the TV; you don't have to build it yourself.
