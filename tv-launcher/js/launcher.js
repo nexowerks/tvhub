@@ -93,7 +93,9 @@
     var el = document.createElement('button');
     el.className = 'app focusable';
     el.style.background = app.bg || 'linear-gradient(160deg,#48484a,#1c1c1e)';
+    var logo = window.LOGOS && window.LOGOS[app.id];
     if (app.image) el.innerHTML = '<img src="' + app.image + '" alt="">';
+    else if (logo) { el.innerHTML = logo; el.classList.add('has-logo'); }
     else if (app.icon) el.innerHTML = ICONS[app.icon];
     else el.textContent = app.letter || app.name.charAt(0);
     el.setAttribute('aria-label', app.name);

@@ -31,10 +31,16 @@
 
       <!-- Widgets -->
       <main class="desktop">
-        <section class="widget clock-widget glass">
-          <div class="clock-time" id="big-time">--:--</div>
-          <div class="clock-date" id="big-date"></div>
-        </section>
+        <div class="widget-row">
+          <section class="widget clock-widget glass">
+            <div class="clock-time" id="big-time">--:--</div>
+            <div class="clock-date" id="big-date"></div>
+          </section>
+
+          <section class="widget weather-widget glass" id="weather">
+            <div class="weather-loading">Loading weather…</div>
+          </section>
+        </div>
 
         <section class="widget inputs-widget glass">
           <h2>Inputs</h2>
@@ -57,6 +63,8 @@
       <div class="toast glass" id="toast"></div>
     </div>
 
+    <script src="js/logos.js"></script>
     <script src="js/launcher.js"></script>
+    <script src="js/weather.js"></script>
   </body>
 </html>
