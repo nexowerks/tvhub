@@ -20,6 +20,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GLASS_DEBUG_KEYSTORE: ${{ github.workspace }}/.glass-signing/debug.keystore
     steps:
       - uses: actions/checkout@v4
 
@@ -68,8 +70,15 @@ jobs:
       - name: Keep debug signing identity between builds
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: glass-debug-signing-v1
+          path: .glass-signing/debug.keystore
+          key: glass-debug-signing-v2
+
+      - name: Prepare debug signing key
+        run: |
+          mkdir -p "$(dirname "$GLASS_DEBUG_KEYSTORE")"
+          if [ ! -f "$GLASS_DEBUG_KEYSTORE" ]; then
+            keytool -genkeypair -keystore "$GLASS_DEBUG_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
 
       - name: Build debug APK
         working-directory: android
@@ -94,6 +103,6 @@ jobs:
             Latest Android TV / Google TV build of Glass Launcher.
             Version 1.2.0 adds an optional Accessibility Home button fix for TVs that ignore
             the default Home setting. Enable Glass Home button in Android Accessibility settings.
-            This is a debug build. If upgrading from 1.0.0 reports a signing conflict,
+            This is a debug build. If upgrading from an older build reports a signing conflict,
             uninstall the old Glass app first, then install this APK.
             Install on the TV with: `adb install -r glass-launcher-androidtv.apk`

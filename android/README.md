@@ -40,8 +40,9 @@ gradle assembleDebug          # or: ./gradlew assembleDebug if you add a wrapper
 - Control Center → Home screen opens Android's home selection settings if supported.
   Some TV firmware does not expose a home picker; stock launcher packages are never disabled.
 
-CI builds are signed with a development key. The workflow caches the debug keystore
-between runs, but a deleted or expired cache creates a new identity. Upgrading from 1.0.0
+CI builds are signed with a development key. The workflow explicitly generates and caches
+the keystore selected by `GLASS_DEBUG_KEYSTORE`; it is never committed to the repository.
+A deleted or expired cache creates a new identity. Upgrading from earlier builds
 may require uninstalling Glass first if Android reports a signature conflict. Stable
 production distribution needs a separately managed private signing key.
 
