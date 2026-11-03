@@ -324,6 +324,7 @@ button { font: inherit; color: inherit; background: none; border: 0; outline: no
 .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .cc-grid .tile { height: 120px; font-size: 22px; }
 .cc-grid .tile svg { width: 40px; height: 40px; }
+.cc-grid .cc-hint { grid-column: 1 / -1; order: 1; font-size: 21px; line-height: 1.45; color: var(--text-dim); }
 
 /* ---------- Toast ---------- */
 

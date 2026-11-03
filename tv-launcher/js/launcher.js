@@ -172,7 +172,17 @@
       grid.appendChild(makeTile('Apps', 'apps', function () { toggleControlCenter(false); toggleApps(true); }));
       grid.appendChild(makeTile('Settings', 'gear', function () { window.AndroidLauncher.openSettings(); }));
       grid.appendChild(makeTile('Home screen', 'tv', function () { window.AndroidLauncher.openHomeSettings(); }));
+      var fix = makeTile('Home button fix', 'tv', function () {
+        window.AndroidLauncher.openHomeButtonSettings();
+      });
+      fix.id = 'home-button-fix';
+      grid.appendChild(fix);
+      var hint = document.createElement('p');
+      hint.className = 'cc-hint';
+      hint.textContent = 'Home still opens the TV menu? Enable Glass Home button in Accessibility. Turn it off there to undo.';
+      grid.appendChild(hint);
       grid.appendChild(makeTile('Refresh apps', 'apps', function () { loadAndroidApps(); toast('Apps refreshed'); }));
+      updateHomeButtonStatus();
       return;
     }
     grid.appendChild(makeTile('Live TV', 'tv', function () { launch(SYSTEM_APPS[0]); }));
@@ -183,6 +193,16 @@
       try { localStorage.setItem('reduceMotion', off ? '1' : '0'); } catch (e) {}
       toast(off ? 'Animations off' : 'Animations on');
     }));
+  }
+
+  function updateHomeButtonStatus() {
+    var button = $('home-button-fix');
+    if (!ANDROID || !button) return;
+    try {
+      var on = window.AndroidLauncher.isHomeButtonFixEnabled();
+      button.querySelector('span').textContent = 'Home button: ' + (on ? 'On' : 'Off');
+      button._label = 'Home button: ' + (on ? 'On' : 'Off');
+    } catch (e) { /* Older preview bridge. */ }
   }
 
   // Build the dock from actual launchable packages; never leave missing placeholders.
@@ -411,6 +431,12 @@
     return false; // already on the dock — let the system decide (stays on Home)
   };
 
+  window.__glassHome = function () {
+    toggleApps(false);
+    if (cc.classList.contains('open')) toggleControlCenter(false);
+    setFocus(document.querySelector('#dock .app'));
+  };
+
   // ---------- Start ----------
 
   try { if (localStorage.getItem('reduceMotion') === '1') document.body.classList.add('reduce-motion'); } catch (e) {}
@@ -434,6 +460,7 @@
   window.__glassResume = function () {
     fitStage();
     tick();
+    updateHomeButtonStatus();
     if (ANDROID) {
       var drawerOpen = $('apps-panel').classList.contains('open');
       loadAndroidApps();

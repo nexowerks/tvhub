@@ -25,7 +25,9 @@ const { chromium } = require('playwright');
       getAppIcon: () => '',
       launch: pkg => { window.testLaunches.push(pkg); return !window.failLaunch; },
       openSettings: () => { window.settingsOpened = true; },
-      openHomeSettings: () => { window.homeSettingsOpened = true; }
+      openHomeSettings: () => { window.homeSettingsOpened = true; },
+      openHomeButtonSettings: () => { window.homeButtonSettingsOpened = true; },
+      isHomeButtonFixEnabled: () => !!window.homeFixOn
     };
   }, fixtures);
   const url = pathToFileURL(path.resolve(__dirname, '../tv-launcher/index.html')).href;
@@ -75,11 +77,20 @@ const { chromium } = require('playwright');
     await page.locator('[data-action="control-center"]').click();
     await page.locator('#cc-grid').getByText('Home screen', { exact: true }).click();
     assert.equal(await page.evaluate(() => window.homeSettingsOpened), true);
+    assert.equal(await page.locator('#home-button-fix span').textContent(), 'Home button: Off');
+    await page.locator('#home-button-fix').click();
+    assert.equal(await page.evaluate(() => window.homeButtonSettingsOpened), true);
+    await page.evaluate(() => { window.homeFixOn = true; window.__glassResume(); });
+    assert.equal(await page.locator('#home-button-fix span').textContent(), 'Home button: On');
+    await page.evaluate(() => window.__glassHome());
+    assert.equal(await page.locator('#control-center').getAttribute('aria-hidden'), 'true');
+    assert.equal(await page.locator('#dock .focused').count(), 1);
 
     await page.evaluate(apps => { window.testApps = apps; window.failLaunch = false; window.__glassBack(); window.__glassResume(); }, fixtures);
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.evaluate(() => window.__glassResume());
-    if (process.env.SCREENSHOT_PATH) await page.screenshot({ path: process.env.SCREENSHOT_PATH });
+    await page.waitForFunction(() => !document.getElementById('toast').classList.contains('show'));
+    if (process.env.SCREENSHOT_PATH) await page.screenshot({ path: process.env.SCREENSHOT_PATH, animations: 'disabled' });
     assert.deepEqual(errors, []);
     console.log('PASS: viewport fit, OEM packages, missing/empty app lists, app pages, remote focus, launch errors, home settings, static effects');
   } finally {

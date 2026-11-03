@@ -44,3 +44,16 @@ CI builds are signed with a development key. The workflow caches the debug keyst
 between runs, but a deleted or expired cache creates a new identity. Upgrading from 1.0.0
 may require uninstalling Glass first if Android reports a signature conflict. Stable
 production distribution needs a separately managed private signing key.
+
+## Home button fix (1.2.0)
+
+When selecting Glass as the default Home app does not change the remote's Home button,
+open Control Center → Home button and enable **Glass Home button** in Android Accessibility
+settings. This is optional and off until the user enables the service in the system UI.
+Turn it off in the same settings to undo it; the stock launcher stays installed and enabled.
+
+The service handles Home key presses and, for firmware that does not deliver the key,
+redirects window-state events only for discovered alternative Home activities. It does
+not retrieve screen contents, inspect app text, click controls, or send accessibility data
+over the network. It ignores Settings activities, other apps and Glass itself. A short
+cooldown suppresses duplicate key/window events. Actual key delivery depends on TV firmware.

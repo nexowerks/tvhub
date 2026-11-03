@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Glass</string>
+    <string name="home_button_label">Glass Home button</string>
+    <string name="home_button_description">Open Glass when you press Home or when the original TV Home activity opens. Enable only if the normal default Home setting does not work. This service handles the Home key and launcher activity events; it does not read screen contents. Turn it off here to restore normal Home behavior.</string>
 </resources>

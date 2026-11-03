@@ -8,8 +8,8 @@ android {
         applicationId "house.hueco.glass"
         minSdk 22            // Android TV 5.1+ covers virtually all Philips Android sets
         targetSdk 34
-        versionCode 2
-        versionName "1.1.0"
+        versionCode 3
+        versionName "1.2.0"
     }
 
     buildTypes {

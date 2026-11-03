@@ -59,6 +59,12 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Check Home button routing policy
+        run: |
+          mkdir -p "$RUNNER_TEMP/glass-policy-tests"
+          javac -d "$RUNNER_TEMP/glass-policy-tests" android/app/src/main/java/house/hueco/glass/HomeButtonPolicy.java tests/HomeButtonPolicyTest.java
+          java -cp "$RUNNER_TEMP/glass-policy-tests" house.hueco.glass.HomeButtonPolicyTest
+
       - name: Keep debug signing identity between builds
         uses: actions/cache@v4
         with:
@@ -86,7 +92,8 @@ jobs:
           files: glass-launcher-androidtv.apk
           body: |
             Latest Android TV / Google TV build of Glass Launcher.
-            Version 1.1.0 fixes TV scaling, discovers installed apps, and reduces GPU effects.
+            Version 1.2.0 adds an optional Accessibility Home button fix for TVs that ignore
+            the default Home setting. Enable Glass Home button in Android Accessibility settings.
             This is a debug build. If upgrading from 1.0.0 reports a signing conflict,
             uninstall the old Glass app first, then install this APK.
             Install on the TV with: `adb install -r glass-launcher-androidtv.apk`

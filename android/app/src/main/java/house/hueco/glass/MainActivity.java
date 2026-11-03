@@ -2,6 +2,7 @@ package house.hueco.glass;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Intent;
 import android.content.ComponentName;
 import android.content.pm.PackageManager;
@@ -12,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -72,6 +74,13 @@ public class MainActivity extends Activity {
             web.resumeTimers();
             web.evaluateJavascript("window.__glassResume && window.__glassResume()", null);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (web != null) web.evaluateJavascript("window.__glassHome && window.__glassHome()", null);
     }
 
     @Override
@@ -211,6 +220,29 @@ public class MainActivity extends Activity {
                 toast("Look for Default apps / Home app in Settings");
                 openSettings();
             }
+        }
+
+        @JavascriptInterface
+        public boolean isHomeButtonFixEnabled() {
+            AccessibilityManager manager = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
+            if (manager == null) return false;
+            for (AccessibilityServiceInfo info : manager.getEnabledAccessibilityServiceList(
+                    AccessibilityServiceInfo.FEEDBACK_ALL_MASK)) {
+                android.content.pm.ServiceInfo service = info.getResolveInfo().serviceInfo;
+                if (getPackageName().equals(service.packageName)
+                        && HomeButtonService.class.getName().equals(service.name)) return true;
+            }
+            return false;
+        }
+
+        @JavascriptInterface
+        public void openHomeButtonSettings() {
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                    toast("Choose Glass Home button and switch it on");
+                } catch (RuntimeException e) { toast("Open Settings, then Accessibility, then Glass Home button"); }
+            });
         }
 
         /** Open Android TV system settings (used by Control Center). */
