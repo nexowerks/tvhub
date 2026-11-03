@@ -8,19 +8,19 @@
   // App IDs are LG's launch IDs. Ones that aren't installed are hidden automatically
   // when the TV lets us list installed apps.
   var FAVORITES = [
-    { id: 'netflix', name: 'Netflix', letter: 'N', bg: 'linear-gradient(160deg,#e50914,#8a050c)' },
-    { id: 'youtube.leanback.v4', name: 'YouTube', letter: '▶', bg: 'linear-gradient(160deg,#ff3b30,#c4001d)' },
-    { id: 'amazon', name: 'Prime Video', letter: 'P', bg: 'linear-gradient(160deg,#1fa8ff,#0a5fae)' },
-    { id: 'com.disney.disneyplus-prod', name: 'Disney+', letter: 'D+', bg: 'linear-gradient(160deg,#1b3a8f,#0b1748)' },
-    { id: 'com.apple.appletv', name: 'Apple TV', letter: 'tv', bg: 'linear-gradient(160deg,#3a3a3c,#111)' },
-    { id: 'spotify-beehive', name: 'Spotify', letter: 'S', bg: 'linear-gradient(160deg,#1ed760,#0f8a3c)' },
-    { id: 'cdp-30', name: 'Plex', letter: 'Px', bg: 'linear-gradient(160deg,#ffc230,#d18a00)' }
+    { id: 'netflix', android: 'com.netflix.ninja', name: 'Netflix', letter: 'N', bg: 'linear-gradient(160deg,#e50914,#8a050c)' },
+    { id: 'youtube.leanback.v4', android: 'com.google.android.youtube.tv', name: 'YouTube', letter: '▶', bg: 'linear-gradient(160deg,#ff3b30,#c4001d)' },
+    { id: 'amazon', android: 'com.amazon.amazonvideo.livingroom', name: 'Prime Video', letter: 'P', bg: 'linear-gradient(160deg,#1fa8ff,#0a5fae)' },
+    { id: 'com.disney.disneyplus-prod', android: 'com.disney.disneyplus', name: 'Disney+', letter: 'D+', bg: 'linear-gradient(160deg,#1b3a8f,#0b1748)' },
+    { id: 'com.apple.appletv', android: 'com.apple.atve.androidtv.appletv', name: 'Apple TV', letter: 'tv', bg: 'linear-gradient(160deg,#3a3a3c,#111)' },
+    { id: 'spotify-beehive', android: 'com.spotify.tv.android', name: 'Spotify', letter: 'S', bg: 'linear-gradient(160deg,#1ed760,#0f8a3c)' },
+    { id: 'cdp-30', android: 'com.plexapp.android', name: 'Plex', letter: 'Px', bg: 'linear-gradient(160deg,#ffc230,#d18a00)' }
   ];
 
   var SYSTEM_APPS = [
-    { id: 'com.webos.app.livetv', name: 'Live TV', icon: 'tv', bg: 'linear-gradient(160deg,#5e5ce6,#3634a3)' },
-    { id: 'com.webos.app.browser', name: 'Browser', icon: 'globe', bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)' },
-    { id: 'com.palm.app.settings', name: 'Settings', icon: 'gear', bg: 'linear-gradient(160deg,#aeaeb2,#636366)' }
+    { id: 'com.webos.app.livetv', android: 'com.google.android.tv', name: 'Live TV', icon: 'tv', bg: 'linear-gradient(160deg,#5e5ce6,#3634a3)' },
+    { id: 'com.webos.app.browser', android: 'com.phlox.tvwebbrowser', name: 'Browser', icon: 'globe', bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)' },
+    { id: 'com.palm.app.settings', android: '__settings__', name: 'Settings', icon: 'gear', bg: 'linear-gradient(160deg,#aeaeb2,#636366)' }
   ];
 
   var INPUTS = [
@@ -31,6 +31,7 @@
   ];
 
   var ICONS = {
+    apps: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
     tv: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
     globe: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/></svg>',
     gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
@@ -61,7 +62,23 @@
     bridge.call(uri, JSON.stringify(params || {}));
   }
 
+  // Platform detection: Android TV exposes the AndroidLauncher bridge; LG exposes PalmServiceBridge.
+  var ANDROID = typeof window.AndroidLauncher !== 'undefined';
+  var androidApps = [];
+  var appsPage = 0;
+  var PAGE_SIZE = 12;
+
   function launch(app) {
+    if (ANDROID) {
+      if (app.android === '__apps__') { toggleApps(true); return; }
+      if (app.android === '__settings__') { window.AndroidLauncher.openSettings(); return; }
+      if (app.android) {
+        if (!window.AndroidLauncher.launch(app.android)) toast('Could not open ' + app.name + '. Try refreshing Apps.');
+      } else {
+        toast(app.name + ' isn’t available on this TV');
+      }
+      return;
+    }
     luna('luna://com.webos.applicationManager/launch', { id: app.id }, function (res) {
       if (res.preview) toast('Would open ' + app.name);
       else if (!res.returnValue) toast(app.name + ' isn’t available');
@@ -83,10 +100,12 @@
   }
 
   function fitStage() {
-    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    var width = document.documentElement.clientWidth || window.innerWidth;
+    var height = document.documentElement.clientHeight || window.innerHeight;
+    var scale = Math.min(width / 1920, height / 1080);
     stage.style.transform = 'scale(' + scale + ')';
-    stage.style.left = (window.innerWidth - 1920 * scale) / 2 + 'px';
-    stage.style.top = (window.innerHeight - 1080 * scale) / 2 + 'px';
+    stage.style.left = (width - 1920 * scale) / 2 + 'px';
+    stage.style.top = (height - 1080 * scale) / 2 + 'px';
   }
 
   function makeApp(app) {
@@ -94,7 +113,15 @@
     el.className = 'app focusable';
     el.style.background = app.bg || 'linear-gradient(160deg,#48484a,#1c1c1e)';
     var logo = window.LOGOS && window.LOGOS[app.id];
-    if (app.image) el.innerHTML = '<img src="' + app.image + '" alt="">';
+    if (!app.image && !logo && ANDROID && app.android.charAt(0) !== '_') {
+      try { app.image = window.AndroidLauncher.getAppIcon(app.android); } catch (e) {}
+    }
+    if (app.image) {
+      var img = document.createElement('img');
+      img.src = app.image;
+      img.alt = '';
+      el.appendChild(img);
+    }
     else if (logo) { el.innerHTML = logo; el.classList.add('has-logo'); }
     else if (app.icon) el.innerHTML = ICONS[app.icon];
     else el.textContent = app.letter || app.name.charAt(0);
@@ -107,7 +134,10 @@
   function makeTile(name, icon, onActivate) {
     var el = document.createElement('button');
     el.className = 'tile focusable';
-    el.innerHTML = ICONS[icon] + '<span>' + name + '</span>';
+    el.innerHTML = ICONS[icon] || '';
+    var label = document.createElement('span');
+    label.textContent = name;
+    el.appendChild(label);
     el._label = name;
     el._activate = onActivate;
     return el;
@@ -122,7 +152,11 @@
     var sep = document.createElement('div');
     sep.className = 'dock-sep';
     dock.appendChild(sep);
-    SYSTEM_APPS.forEach(function (app) { dock.appendChild(makeApp(app)); });
+    var system = ANDROID ? [
+      { android: '__apps__', name: 'Apps', icon: 'apps', bg: 'linear-gradient(150deg,#6489ee,#5841ad)' },
+      SYSTEM_APPS[2]
+    ] : SYSTEM_APPS;
+    system.forEach(function (app) { dock.appendChild(makeApp(app)); });
   }
 
   function renderInputs() {
@@ -134,6 +168,13 @@
 
   function renderControlCenter() {
     var grid = $('cc-grid');
+    if (ANDROID) {
+      grid.appendChild(makeTile('Apps', 'apps', function () { toggleControlCenter(false); toggleApps(true); }));
+      grid.appendChild(makeTile('Settings', 'gear', function () { window.AndroidLauncher.openSettings(); }));
+      grid.appendChild(makeTile('Home screen', 'tv', function () { window.AndroidLauncher.openHomeSettings(); }));
+      grid.appendChild(makeTile('Refresh apps', 'apps', function () { loadAndroidApps(); toast('Apps refreshed'); }));
+      return;
+    }
     grid.appendChild(makeTile('Live TV', 'tv', function () { launch(SYSTEM_APPS[0]); }));
     grid.appendChild(makeTile('Browser', 'globe', function () { launch(SYSTEM_APPS[1]); }));
     grid.appendChild(makeTile('Settings', 'gear', function () { launch(SYSTEM_APPS[2]); }));
@@ -144,8 +185,80 @@
     }));
   }
 
+  // Build the dock from actual launchable packages; never leave missing placeholders.
+  function loadAndroidApps() {
+    try {
+      androidApps = JSON.parse(window.AndroidLauncher.getApps());
+      if (!Array.isArray(androidApps)) throw new Error('Invalid app list');
+      androidApps = androidApps.filter(function (app) {
+        return app && typeof app.android === 'string' && typeof app.name === 'string';
+      });
+    } catch (e) {
+      androidApps = [];
+      toast('Could not read apps. Open Settings or try Refresh apps.');
+    }
+    var installed = [];
+    var used = {};
+    FAVORITES.forEach(function (favorite) {
+      var match = null;
+      androidApps.some(function (app) {
+        // OEM/preloaded variants can have a different package but the same label.
+        var sameName = app.name.toLowerCase().replace(/[^a-z0-9]/g, '') ===
+          favorite.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!used[app.android] && (app.android === favorite.android || sameName)) { match = app; return true; }
+        return false;
+      });
+      if (match) {
+        installed.push({ id: favorite.id, android: match.android, name: match.name, bg: favorite.bg });
+        used[match.android] = true;
+      }
+    });
+    androidApps.forEach(function (app) {
+      if (installed.length < 7 && !used[app.android]) { installed.push(app); used[app.android] = true; }
+    });
+    renderDock(installed);
+    setFocus(document.querySelector('#dock .app'));
+  }
+
+  function renderAppsPage() {
+    var grid = $('apps-grid');
+    var pages = $('apps-pages');
+    grid.innerHTML = '';
+    pages.innerHTML = '';
+    var count = Math.max(1, Math.ceil(androidApps.length / PAGE_SIZE));
+    appsPage = Math.max(0, Math.min(appsPage, count - 1));
+    $('apps-page').textContent = androidApps.length + ' apps · ' + (appsPage + 1) + ' / ' + count;
+    androidApps.slice(appsPage * PAGE_SIZE, (appsPage + 1) * PAGE_SIZE).forEach(function (app) {
+      var button = makeApp(app);
+      button.classList.add('app-card');
+      var label = document.createElement('span');
+      label.className = 'app-card-label';
+      label.textContent = app.name;
+      button.appendChild(label);
+      grid.appendChild(button);
+    });
+    if (!androidApps.length) {
+      var message = document.createElement('p');
+      message.textContent = 'No apps found. Use Refresh apps in Control Center.';
+      grid.appendChild(message);
+    }
+    if (appsPage > 0) pages.appendChild(makeTile('Previous', 'apps', function () { appsPage--; renderAppsPage(); }));
+    if (appsPage + 1 < count) pages.appendChild(makeTile('Next', 'apps', function () { appsPage++; renderAppsPage(); }));
+    pages.appendChild(makeTile('Back to Home', 'tv', function () { toggleApps(false); }));
+    setFocus(grid.querySelector('.focusable') || pages.querySelector('.focusable'));
+  }
+
+  function toggleApps(open) {
+    var panel = $('apps-panel');
+    panel.classList.toggle('open', open);
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) { toggleControlCenter(false); renderAppsPage(); }
+    else setFocus(document.querySelector('#dock .app'));
+  }
+
   // Use the TV's installed-app list (when permitted) to hide missing apps and show real icons.
   function loadInstalledApps() {
+    if (ANDROID) return loadAndroidApps();
     luna('luna://com.webos.applicationManager/listLaunchPoints', {}, function (res) {
       if (!res.returnValue || !res.launchPoints) return;
       var byId = {};
@@ -183,6 +296,7 @@
   var cc = $('control-center');
 
   function activeLayer() {
+    if ($('apps-panel').classList.contains('open')) return $('apps-panel');
     return cc.classList.contains('open') ? cc : $('stage');
   }
 
@@ -191,7 +305,7 @@
     var all = layer.querySelectorAll('.focusable');
     var list = [];
     for (var i = 0; i < all.length; i++) {
-      if (layer === cc || !cc.contains(all[i])) list.push(all[i]);
+      if (layer !== stage || (!cc.contains(all[i]) && !$('apps-panel').contains(all[i]))) list.push(all[i]);
     }
     return list;
   }
@@ -209,7 +323,7 @@
     el.classList.add('focused');
 
     var label = $('dock-label');
-    if (el.classList.contains('app')) {
+    if (el.classList.contains('app') && !el.classList.contains('app-card')) {
       // Magnify neighbours too, like the macOS dock
       var a = el.previousElementSibling, b = el.nextElementSibling;
       if (a && a.classList.contains('app')) a.classList.add('near');
@@ -268,7 +382,8 @@
       case KEY.DOWN: move('down'); break;
       case KEY.ENTER: activate(current); break;
       case KEY.BACK: case KEY.ESC: case KEY.BACKSPACE:
-        if (cc.classList.contains('open')) toggleControlCenter(false);
+        if ($('apps-panel').classList.contains('open')) toggleApps(false);
+        else if (cc.classList.contains('open')) toggleControlCenter(false);
         else setFocus(document.querySelector('#dock .app'));
         break;
       default: return;
@@ -287,17 +402,43 @@
     else if (cc.classList.contains('open') && !cc.contains(e.target)) toggleControlCenter(false);
   });
 
+  // Android's hardware Back button calls this (see MainActivity). Return true if we handled it.
+  window.__glassBack = function () {
+    if ($('apps-panel').classList.contains('open')) { toggleApps(false); return true; }
+    if (cc.classList.contains('open')) { toggleControlCenter(false); return true; }
+    var dockApp = document.querySelector('#dock .app.focused');
+    if (!dockApp) { setFocus(document.querySelector('#dock .app')); return true; }
+    return false; // already on the dock — let the system decide (stays on Home)
+  };
+
   // ---------- Start ----------
 
   try { if (localStorage.getItem('reduceMotion') === '1') document.body.classList.add('reduce-motion'); } catch (e) {}
 
+  // A browser-based app can't switch TV inputs on Android TV, so hide that widget there.
+  if (ANDROID) {
+    document.body.classList.add('android');
+    var iw = document.querySelector('.inputs-widget');
+    if (iw) iw.style.display = 'none';
+  }
+
   fitStage();
   window.addEventListener('resize', fitStage);
-  renderDock(FAVORITES);
-  renderInputs();
+  renderDock(ANDROID ? [] : FAVORITES);
+  if (!ANDROID) renderInputs();
   renderControlCenter();
   tick();
-  setInterval(tick, 10000);
+  setInterval(tick, 30000);
   setFocus(document.querySelector('#dock .app'));
   loadInstalledApps();
+  window.__glassResume = function () {
+    fitStage();
+    tick();
+    if (ANDROID) {
+      var drawerOpen = $('apps-panel').classList.contains('open');
+      loadAndroidApps();
+      if (drawerOpen) renderAppsPage();
+      else if (cc.classList.contains('open')) setFocus(cc.querySelector('.focusable'));
+    }
+  };
 })();

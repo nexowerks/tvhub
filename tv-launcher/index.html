@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=1920, height=1080">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Glass Launcher</title>
     <link rel="stylesheet" href="css/glass.css">
   </head>
@@ -59,6 +59,12 @@
         <h2>Control Center</h2>
         <div class="cc-grid" id="cc-grid"></div>
       </aside>
+
+      <section class="apps-panel glass" id="apps-panel" aria-hidden="true">
+        <div class="apps-heading"><h2>Apps</h2><span id="apps-page"></span></div>
+        <div class="apps-grid" id="apps-grid"></div>
+        <div class="apps-pages" id="apps-pages"></div>
+      </section>
 
       <div class="toast glass" id="toast"></div>
     </div>

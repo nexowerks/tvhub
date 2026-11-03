@@ -26,4 +26,21 @@ gradle assembleDebug          # or: ./gradlew assembleDebug if you add a wrapper
   `launch(pkg)`, `isInstalled(pkg)`, `openSettings()`, `platform()`.
 - `launcher.js` detects that bridge and routes dock taps to Android intents; on LG it uses
   the webOS luna bus instead.
-- Package names for each app live in `FAVORITES` / `SYSTEM_APPS` in `tv-launcher/js/launcher.js`.
+- Favorite styling lives in `FAVORITES` in `tv-launcher/js/launcher.js`; Android's
+  PackageManager supplies the actual installed packages and labels.
+
+## Android TV 1.1.0
+
+- Fits the 1920×1080 design to the actual WebView viewport and uses a fixed text scale.
+- Discovers real TV and standard launcher activities; an Apps panel includes all discovered
+  launchable apps, with paginated remote navigation and native icons.
+- Matches favorite logos to installed packages or labels and omits missing shortcuts.
+- Uses a static gradient wallpaper and unblurred glass on Android; pauses WebView timers
+  while another app is in the foreground. These reduce launcher work, not other apps' work.
+- Control Center → Home screen opens Android's home selection settings if supported.
+  Some TV firmware does not expose a home picker; stock launcher packages are never disabled.
+
+CI builds are signed with a development key. The workflow caches the debug keystore
+between runs, but a deleted or expired cache creates a new identity. Upgrading from 1.0.0
+may require uninstalling Glass first if Android reports a signature conflict. Stable
+production distribution needs a separately managed private signing key.

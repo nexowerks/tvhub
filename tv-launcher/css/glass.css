@@ -342,3 +342,71 @@ button { font: inherit; color: inherit; background: none; border: 0; outline: no
   z-index: 30;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Android TV uses a static wallpaper and opaque glass to keep the GPU idle. */
+.android .wallpaper {
+  background:
+    radial-gradient(ellipse at 12% 5%, rgba(216, 100, 155, .48), transparent 58%),
+    radial-gradient(ellipse at 85% 30%, rgba(116, 99, 214, .55), transparent 62%),
+    linear-gradient(135deg, #252040, #153c58);
+}
+.android .blob { display: none; animation: none; filter: none; will-change: auto; }
+.android .glass {
+  background: linear-gradient(150deg, rgba(72, 76, 109, .94), rgba(30, 39, 62, .96));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .24);
+}
+.android .dock { gap: 20px; padding: 20px 28px; border-radius: 36px; }
+.android .dock .app { width: 104px; height: 104px; transition: transform .14s ease-out; }
+.android .dock .app.focused { transform: scale(1.14) translateY(-4px); margin: 0; outline: 3px solid #fff; outline-offset: 5px; }
+.android .dock .app.near { transform: none; margin: 0; }
+.android .dock-sep { height: 72px; }
+.android .dock-label { bottom: 174px; background: #202b42; -webkit-backdrop-filter: none; backdrop-filter: none; transition: opacity .12s; }
+.android .menu-item, .android .tile { transition: transform .14s ease-out, background .14s; }
+.android .clock-widget { width: 600px; }
+.android .clock-time { font-size: 136px; }
+.android .clock-date { font-size: 28px; }
+
+.apps-panel {
+  position: absolute;
+  top: 112px;
+  left: 96px;
+  right: 96px;
+  bottom: 40px;
+  padding: 36px;
+  border-radius: 36px;
+  z-index: 25;
+  visibility: hidden;
+  pointer-events: none;
+}
+.apps-panel.open { visibility: visible; pointer-events: auto; }
+.apps-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.apps-heading h2 { font-size: 36px; font-weight: 500; }
+.apps-heading span { font-size: 24px; color: var(--text-dim); }
+.apps-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; }
+.apps-grid .app-card {
+  width: 100%;
+  height: 200px;
+  padding: 16px 12px 48px;
+  border-radius: 24px;
+  transform-origin: center;
+  margin: 0;
+}
+.app-card img { width: 96px; height: 96px; border-radius: 20px; object-fit: contain; }
+.app-card-label {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 23px;
+  font-weight: 500;
+}
+.apps-grid .app-card.focused { transform: scale(1.035); margin: 0; outline: 3px solid white; outline-offset: 4px; }
+.apps-grid .app-card.near { transform: none; margin: 0; }
+.apps-pages { display: flex; justify-content: flex-end; gap: 20px; margin-top: 28px; }
+.apps-pages .tile { height: 64px; padding: 0 28px; flex-direction: row; font-size: 24px; }
+.apps-pages svg { width: 28px; height: 28px; }
